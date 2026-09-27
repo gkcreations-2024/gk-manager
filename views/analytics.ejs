@@ -13,6 +13,50 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
+  <!-- Unique Page Transition Loader Overlay -->
+<div id="page-loader">
+  <div class="unique-spinner"></div>
+  <div class="loader-text">Loading GK Portal...</div>
+</div>
+
+<script>
+  // Show page loader on tab/page navigation
+  document.addEventListener('DOMContentLoaded', () => {
+    const pageLoader = document.getElementById('page-loader');
+    
+    // Hide loader on initial render
+    pageLoader.classList.remove('active');
+
+    // Trigger on navigation links
+    document.querySelectorAll('a, .nav-select').forEach(element => {
+      element.addEventListener('click', (e) => {
+        if (element.tagName === 'A' && element.getAttribute('href') !== '#') {
+          pageLoader.classList.add('active');
+        }
+      });
+    });
+
+    // Trigger on dropdown navigation
+    const navSelect = document.querySelector('.nav-select');
+    if (navSelect) {
+      navSelect.addEventListener('change', () => {
+        pageLoader.classList.add('active');
+      });
+    }
+  });
+
+  // Attach button submission loader for form creation
+  function handleFormSubmit(form) {
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.classList.add('btn-loading');
+    }
+    const pageLoader = document.getElementById('page-loader');
+    if (pageLoader) {
+      pageLoader.classList.add('active');
+    }
+  }
+</script>
   <!-- Header -->
   <header>
     <div class="header-container">

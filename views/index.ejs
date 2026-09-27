@@ -13,6 +13,50 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
+  <!-- Unique Page Transition Loader Overlay -->
+<div id="page-loader">
+  <div class="unique-spinner"></div>
+  <div class="loader-text">Loading GK Portal...</div>
+</div>
+
+<script>
+  // Show page loader on tab/page navigation
+  document.addEventListener('DOMContentLoaded', () => {
+    const pageLoader = document.getElementById('page-loader');
+    
+    // Hide loader on initial render
+    pageLoader.classList.remove('active');
+
+    // Trigger on navigation links
+    document.querySelectorAll('a, .nav-select').forEach(element => {
+      element.addEventListener('click', (e) => {
+        if (element.tagName === 'A' && element.getAttribute('href') !== '#') {
+          pageLoader.classList.add('active');
+        }
+      });
+    });
+
+    // Trigger on dropdown navigation
+    const navSelect = document.querySelector('.nav-select');
+    if (navSelect) {
+      navSelect.addEventListener('change', () => {
+        pageLoader.classList.add('active');
+      });
+    }
+  });
+
+  // Attach button submission loader for form creation
+  function handleFormSubmit(form) {
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.classList.add('btn-loading');
+    }
+    const pageLoader = document.getElementById('page-loader');
+    if (pageLoader) {
+      pageLoader.classList.add('active');
+    }
+  }
+</script>
   <header>
     <div class="header-container">
       <div class="logo">
@@ -63,76 +107,128 @@
   </div>
 </nav>
 
-  <div class="main-container">
-    <div class="card">
-      <h2 class="card-title"><i class="fa-solid fa-plus-circle" style="color: var(--primary);"></i> Create New Staff Task</h2>
-      <form action="/tasks/create" method="POST">
-        <div class="form-grid">
-          <div class="form-group">
-            <label><i class="fa-solid fa-heading"></i> Task Title</label>
-            <input type="text" name="title" required placeholder="e.g., Fireworks E-commerce API Setup">
+ <div class="main-container">
+  <!-- Urgent Project Alert Banner -->
+  <% if (typeof urgentTask !== 'undefined' && urgentTask && minDays !== null) { %>
+    <div class="card" style="border-left: 4px solid #dc2626; background: #fff5f5; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <span class="days-badge urgent">
+            <i class="fa-solid fa-triangle-exclamation"></i> URGENT PROJECT
+          </span>
+          <h3 style="margin-top: 8px; font-size: 1.1rem; color: #991b1b;"><%= urgentTask.title %></h3>
+          <p style="font-size: 0.85rem; color: #7f1d1d; margin-top: 2px;">
+            Assigned to: <strong><%= urgentTask.assignedTo %></strong>
+          </p>
+        </div>
+        <div style="text-align: right;">
+          <span style="font-size: 1.8rem; font-weight: 800; color: #dc2626;"><%= minDays %> Days</span>
+          <div style="font-size: 0.75rem; color: #991b1b;">Remaining to complete</div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Create Task Form -->
+  <div class="card">
+    <h2 class="card-title"><i class="fa-solid fa-plus-circle" style="color: var(--primary);"></i> Create New Staff Task</h2>
+    <form action="/tasks/create" method="POST" onsubmit="handleFormSubmit(this)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label><i class="fa-solid fa-heading"></i> Task Title</label>
+          <input type="text" name="title" required placeholder="e.g., Fireworks E-commerce API Setup">
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-user"></i> Assigned Staff</label>
+          <input type="text" name="assignedTo" required placeholder="Assignee name">
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-calendar"></i> Due Date</label>
+          <input type="date" name="dueDate" required>
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-flag"></i> Initial Status</label>
+          <select name="status">
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label><i class="fa-solid fa-align-left"></i> Description (Optional)</label>
+          <textarea name="description" rows="2" placeholder="Task specifics and notes..."></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary">
+        <span class="btn-text"><i class="fa-solid fa-paper-plane"></i> Add Task</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Active Tasks List -->
+  <h2 class="card-title" style="margin-top: 24px;"><i class="fa-solid fa-list-ul" style="color: #60a5fa;"></i> Active Tasks Workload</h2>
+  <div class="task-grid">
+    <% if (tasks.length === 0) { %>
+      <p style="color: var(--text-muted);"><i class="fa-solid fa-info-circle"></i> No active tasks in queue.</p>
+    <% } else { %>
+      <% tasks.forEach(task => { %>
+        <div class="task-item">
+          <div>
+            <div class="task-header">
+              <h3><%= task.title %></h3>
+              <span class="badge <%= task.status.toLowerCase().replace(' ', '-') %>">
+                <% if(task.status === 'Pending') { %><i class="fa-solid fa-hourglass-half"></i><% } else { %><i class="fa-solid fa-spinner fa-spin"></i><% } %>
+                <%= task.status %>
+              </span>
+            </div>
+            
+            <p class="task-details"><%= task.description || 'No detailed instructions added.' %></p>
+
+            <!-- Days Remaining Badge -->
+            <div style="margin: 10px 0;">
+              <% if (typeof task.daysRemaining !== 'undefined') { %>
+                <% if (task.daysRemaining < 0) { %>
+                  <span class="days-badge urgent">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Overdue by <%= Math.abs(task.daysRemaining) %> Days
+                  </span>
+                <% } else if (task.daysRemaining <= 3) { %>
+                  <span class="days-badge urgent">
+                    <i class="fa-solid fa-fire"></i> Urgent: <%= task.daysRemaining %> Days Left
+                  </span>
+                <% } else { %>
+                  <span class="days-badge normal">
+                    <i class="fa-solid fa-calendar-day"></i> <%= task.daysRemaining %> Days Remaining
+                  </span>
+                <% } %>
+              <% } %>
+            </div>
+
+            <div class="meta-info">
+              <div class="meta-item"><i class="fa-solid fa-user-gear" style="color: #818cf8;"></i> <strong>Assignee:</strong> <%= task.assignedTo %></div>
+              <div class="meta-item"><i class="fa-solid fa-calendar-day" style="color: #f472b6;"></i> <strong>Due:</strong> <%= new Date(task.dueDate).toLocaleDateString() %></div>
+            </div>
           </div>
-          <div class="form-group">
-            <label><i class="fa-solid fa-user"></i> Assigned Staff</label>
-            <input type="text" name="assignedTo" required placeholder="Assignee name">
-          </div>
-          <div class="form-group">
-            <label><i class="fa-solid fa-calendar"></i> Due Date</label>
-            <input type="date" name="dueDate" required>
-          </div>
-          <div class="form-group">
-            <label><i class="fa-solid fa-flag"></i> Initial Status</label>
-            <select name="status">
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-            </select>
-          </div>
-          <div class="form-group full-width">
-            <label><i class="fa-solid fa-align-left"></i> Description (Optional)</label>
-            <textarea name="description" rows="2" placeholder="Task specifics and notes..."></textarea>
+
+          <div class="task-actions">
+            <form action="/tasks/<%= task._id %>/status" method="POST" style="display:inline;" onsubmit="handleFormSubmit(this)">
+              <input type="hidden" name="status" value="Completed">
+              <input type="hidden" name="redirectUrl" value="/">
+              <button type="submit" class="btn-done">
+                <span class="btn-text"><i class="fa-solid fa-check"></i> Mark Complete</span>
+              </button>
+            </form>
+
+            <form action="/tasks/<%= task._id %>/delete" method="POST" style="display:inline;" onsubmit="handleFormSubmit(this)">
+              <input type="hidden" name="redirectUrl" value="/">
+              <button type="submit" class="btn-delete">
+                <span class="btn-text"><i class="fa-solid fa-trash-can"></i> Remove</span>
+              </button>
+            </form>
           </div>
         </div>
-        <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Add Task</button>
-      </form>
-    </div>
-
-    <h2 class="card-title"><i class="fa-solid fa-list-ul" style="color: #60a5fa;"></i> Active Tasks Workload</h2>
-    <div class="task-grid">
-      <% if (tasks.length === 0) { %>
-        <p style="color: var(--text-muted);"><i class="fa-solid fa-info-circle"></i> No active tasks in queue.</p>
-      <% } else { %>
-        <% tasks.forEach(task => { %>
-          <div class="task-item">
-            <div>
-              <div class="task-header">
-                <h3><%= task.title %></h3>
-                <span class="badge <%= task.status.toLowerCase().replace(' ', '-') %>">
-                  <% if(task.status === 'Pending') { %><i class="fa-solid fa-hourglass-half"></i><% } else { %><i class="fa-solid fa-spinner fa-spin"></i><% } %>
-                  <%= task.status %>
-                </span>
-              </div>
-              <p class="task-details"><%= task.description || 'No detailed instructions added.' %></p>
-              <div class="meta-info">
-                <div class="meta-item"><i class="fa-solid fa-user-gear" style="color: #818cf8;"></i> <strong>Assignee:</strong> <%= task.assignedTo %></div>
-                <div class="meta-item"><i class="fa-solid fa-calendar-day" style="color: #f472b6;"></i> <strong>Due:</strong> <%= new Date(task.dueDate).toLocaleDateString() %></div>
-              </div>
-            </div>
-            <div class="task-actions">
-              <form action="/tasks/<%= task._id %>/status" method="POST" style="display:inline;">
-                <input type="hidden" name="status" value="Completed">
-                <input type="hidden" name="redirectUrl" value="/">
-                <button type="submit" class="btn-done"><i class="fa-solid fa-check"></i> Mark Complete</button>
-              </form>
-              <form action="/tasks/<%= task._id %>/delete" method="POST" style="display:inline;">
-                <input type="hidden" name="redirectUrl" value="/">
-                <button type="submit" class="btn-delete"><i class="fa-solid fa-trash-can"></i> Remove</button>
-              </form>
-            </div>
-          </div>
-        <% }) %>
-      <% } %>
-    </div>
+      <% }) %>
+    <% } %>
   </div>
+</div>
   <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
