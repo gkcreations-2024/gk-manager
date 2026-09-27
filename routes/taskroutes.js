@@ -13,12 +13,43 @@ async function getStats() {
   return { total, pending, processing, completed };
 }
 
-// 1. Active Tasks
+// 1. Active Tasks (Merged Route with Stats, Days Remaining, and Urgent Task Calculation)
 router.get('/', async (req, res) => {
   try {
     const stats = await getStats();
-    const activeTasks = await Task.find({ status: { $ne: 'Completed' } }).sort({ dueDate: 1 });
-    res.render('index', { tasks: activeTasks, stats, activeTab: 'active' });
+    const tasks = await Task.find({ status: { $ne: 'Completed' } }).sort({ dueDate: 1 });
+
+    let minDays = Infinity;
+    let urgentTask = null;
+
+    const processedTasks = tasks.map(task => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Clear time for accurate day count
+
+      const dueDate = new Date(task.dueDate);
+      dueDate.setHours(0, 0, 0, 0); // Clear time for accurate day count
+
+      const timeDiff = dueDate - today;
+      const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+      const taskObj = task.toObject();
+      taskObj.daysRemaining = daysRemaining;
+
+      if (daysRemaining >= 0 && daysRemaining < minDays) {
+        minDays = daysRemaining;
+        urgentTask = taskObj;
+      }
+
+      return taskObj;
+    });
+
+    res.render('index', {
+      tasks: processedTasks,
+      stats,
+      urgentTask: urgentTask,
+      minDays: minDays === Infinity ? null : minDays,
+      activeTab: 'active'
+    });
   } catch (err) {
     res.status(500).send('Error loading tasks: ' + err.message);
   }
@@ -80,38 +111,5 @@ router.post('/tasks/:id/delete', async (req, res) => {
     res.status(400).send('Failed to delete task: ' + err.message);
   }
 });
-router.get('/', async (req, res) => {
-  try {
-    const tasks = await Task.find({ status: { $ne: 'Completed' } }).sort({ dueDate: 1 });
 
-    let minDays = Infinity;
-    let urgentTask = null;
-
-    const processedTasks = tasks.map(task => {
-      const today = new Date();
-      const dueDate = new Date(task.dueDate);
-      const timeDiff = dueDate - today;
-      const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-
-      const taskObj = task.toObject();
-      taskObj.daysRemaining = daysRemaining;
-
-      if (daysRemaining >= 0 && daysRemaining < minDays) {
-        minDays = daysRemaining;
-        urgentTask = taskObj;
-      }
-
-      return taskObj;
-    });
-
-    res.render('index', {
-      tasks: processedTasks,
-      urgentTask: urgentTask,
-      minDays: minDays === Infinity ? null : minDays,
-      activeTab: 'active'
-    });
-  } catch (err) {
-    res.status(500).send("Server Error");
-  }
-});
 module.exports = router;
