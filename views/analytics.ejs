@@ -6,6 +6,11 @@
   <title>GK Creations — Task Analytics</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/style.css">
+  <!-- PWA Manifest & Theme Color -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
   <!-- Header -->
@@ -130,5 +135,14 @@
       </div>
     </div>
   </div>
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('Service Worker Registered!'))
+        .catch(err => console.log('Service Worker Failed:', err));
+    });
+  }
+</script>
 </body>
 </html>
