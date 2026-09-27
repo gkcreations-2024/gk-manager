@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GK Creations — Task Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-list-check"></i></div>
+        <div class="logo-text">
+          <h1>GK Creations</h1>
+          <p>Staff Operations Management</p>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-card"><span><i class="fa-solid fa-layer-group"></i> Total</span><strong><%= stats.total %></strong></div>
+        <div class="stat-card"><span><i class="fa-solid fa-clock"></i> Pending</span><strong><%= stats.pending %></strong></div>
+        <div class="stat-card"><span><i class="fa-solid fa-spinner"></i> Process</span><strong><%= stats.processing %></strong></div>
+        <div class="stat-card"><span><i class="fa-solid fa-circle-check"></i> Done</span><strong><%= stats.completed %></strong></div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+  <div class="nav-container">
+    <!-- Desktop Tabs View -->
+    <div class="nav-tabs">
+      <a href="/" class="<%= activeTab === 'active' ? 'active' : '' %>">
+        <i class="fa-solid fa-tasks"></i> Active Workload
+      </a>
+      <a href="/completed" class="<%= activeTab === 'completed' ? 'active' : '' %>">
+        <i class="fa-solid fa-check-double"></i> Completed Tasks
+      </a>
+      <a href="/analytics" class="<%= activeTab === 'analytics' ? 'active' : '' %>">
+        <i class="fa-solid fa-chart-pie"></i> Analytics
+      </a>
+    </div>
+
+    <!-- Mobile Selecting Menu -->
+    <div class="nav-select-wrapper">
+      <select class="nav-select" onchange="window.location.href=this.value;">
+        <option value="/" <%= activeTab === 'active' ? 'selected' : '' %>>
+          📋 Active Workload
+        </option>
+        <option value="/completed" <%= activeTab === 'completed' ? 'selected' : '' %>>
+          ✅ Completed Tasks
+        </option>
+        <option value="/analytics" <%= activeTab === 'analytics' ? 'selected' : '' %>>
+          📊 Task Analytics
+        </option>
+      </select>
+    </div>
+  </div>
+</nav>
+
+  <div class="main-container">
+    <div class="card">
+      <h2 class="card-title"><i class="fa-solid fa-plus-circle" style="color: var(--primary);"></i> Create New Staff Task</h2>
+      <form action="/tasks/create" method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label><i class="fa-solid fa-heading"></i> Task Title</label>
+            <input type="text" name="title" required placeholder="e.g., Fireworks E-commerce API Setup">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-user"></i> Assigned Staff</label>
+            <input type="text" name="assignedTo" required placeholder="Assignee name">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-calendar"></i> Due Date</label>
+            <input type="date" name="dueDate" required>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-flag"></i> Initial Status</label>
+            <select name="status">
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label><i class="fa-solid fa-align-left"></i> Description (Optional)</label>
+            <textarea name="description" rows="2" placeholder="Task specifics and notes..."></textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Add Task</button>
+      </form>
+    </div>
+
+    <h2 class="card-title"><i class="fa-solid fa-list-ul" style="color: #60a5fa;"></i> Active Tasks Workload</h2>
+    <div class="task-grid">
+      <% if (tasks.length === 0) { %>
+        <p style="color: var(--text-muted);"><i class="fa-solid fa-info-circle"></i> No active tasks in queue.</p>
+      <% } else { %>
+        <% tasks.forEach(task => { %>
+          <div class="task-item">
+            <div>
+              <div class="task-header">
+                <h3><%= task.title %></h3>
+                <span class="badge <%= task.status.toLowerCase().replace(' ', '-') %>">
+                  <% if(task.status === 'Pending') { %><i class="fa-solid fa-hourglass-half"></i><% } else { %><i class="fa-solid fa-spinner fa-spin"></i><% } %>
+                  <%= task.status %>
+                </span>
+              </div>
+              <p class="task-details"><%= task.description || 'No detailed instructions added.' %></p>
+              <div class="meta-info">
+                <div class="meta-item"><i class="fa-solid fa-user-gear" style="color: #818cf8;"></i> <strong>Assignee:</strong> <%= task.assignedTo %></div>
+                <div class="meta-item"><i class="fa-solid fa-calendar-day" style="color: #f472b6;"></i> <strong>Due:</strong> <%= new Date(task.dueDate).toLocaleDateString() %></div>
+              </div>
+            </div>
+            <div class="task-actions">
+              <form action="/tasks/<%= task._id %>/status" method="POST" style="display:inline;">
+                <input type="hidden" name="status" value="Completed">
+                <input type="hidden" name="redirectUrl" value="/">
+                <button type="submit" class="btn-done"><i class="fa-solid fa-check"></i> Mark Complete</button>
+              </form>
+              <form action="/tasks/<%= task._id %>/delete" method="POST" style="display:inline;">
+                <input type="hidden" name="redirectUrl" value="/">
+                <button type="submit" class="btn-delete"><i class="fa-solid fa-trash-can"></i> Remove</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

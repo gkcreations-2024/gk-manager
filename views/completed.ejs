@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GK Creations — Completed Tasks</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-list-check"></i></div>
+        <div class="logo-text">
+          <h1>GK Creations</h1>
+          <p>Staff Operations Management</p>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-card"><span><i class="fa-solid fa-layer-group"></i> Total</span><strong><%= stats.total %></strong></div>
+        <div class="stat-card"><span><i class="fa-solid fa-clock"></i> Pending</span><strong><%= stats.pending %></strong></div>
+        <div class="stat-card"><span><i class="fa-solid fa-spinner"></i> Process</span><strong><%= stats.processing %></strong></div>
+        <div class="stat-card"><span><i class="fa-solid fa-circle-check"></i> Done</span><strong><%= stats.completed %></strong></div>
+      </div>
+    </div>
+  </header>
+
+ <nav>
+  <div class="nav-container">
+    <!-- Desktop Tabs View -->
+    <div class="nav-tabs">
+      <a href="/" class="<%= activeTab === 'active' ? 'active' : '' %>">
+        <i class="fa-solid fa-tasks"></i> Active Workload
+      </a>
+      <a href="/completed" class="<%= activeTab === 'completed' ? 'active' : '' %>">
+        <i class="fa-solid fa-check-double"></i> Completed Tasks
+      </a>
+      <a href="/analytics" class="<%= activeTab === 'analytics' ? 'active' : '' %>">
+        <i class="fa-solid fa-chart-pie"></i> Analytics
+      </a>
+    </div>
+
+    <!-- Mobile Selecting Menu -->
+    <div class="nav-select-wrapper">
+      <select class="nav-select" onchange="window.location.href=this.value;">
+        <option value="/" <%= activeTab === 'active' ? 'selected' : '' %>>
+          📋 Active Workload
+        </option>
+        <option value="/completed" <%= activeTab === 'completed' ? 'selected' : '' %>>
+          ✅ Completed Tasks
+        </option>
+        <option value="/analytics" <%= activeTab === 'analytics' ? 'selected' : '' %>>
+          📊 Task Analytics
+        </option>
+      </select>
+    </div>
+  </div>
+</nav>
+
+  <div class="main-container">
+    <div class="card">
+      <h2 class="card-title"><i class="fa-solid fa-box-archive" style="color: #34d399;"></i> Completed Tasks Archive</h2>
+      <% if (tasks.length === 0) { %>
+        <p style="color: var(--text-muted);"><i class="fa-solid fa-info-circle"></i> No completed tasks in archive.</p>
+      <% } else { %>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Task Details</th>
+                <th>Assigned Staff</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% tasks.forEach(task => { %>
+                <tr>
+                  <td>
+                    <strong><%= task.title %></strong>
+                    <% if (task.description) { %>
+                      <br><small style="color: var(--text-muted);"><%= task.description %></small>
+                    <% } %>
+                  </td>
+                  <td><i class="fa-regular fa-user" style="color: #818cf8;"></i> <%= task.assignedTo %></td>
+                  <td><%= new Date(task.dueDate).toLocaleDateString() %></td>
+                  <td><span class="badge completed"><i class="fa-solid fa-check"></i> Completed</span></td>
+                  <td>
+                    <form action="/tasks/<%= task._id %>/status" method="POST" style="display:inline;">
+                      <input type="hidden" name="status" value="Pending">
+                      <input type="hidden" name="redirectUrl" value="/completed">
+                      <button type="submit" class="btn-primary" style="padding: 6px 12px; font-size: 0.78rem;"><i class="fa-solid fa-rotate-left"></i> Re-open</button>
+                    </form>
+                    <form action="/tasks/<%= task._id %>/delete" method="POST" style="display:inline; margin-left: 4px;">
+                      <input type="hidden" name="redirectUrl" value="/completed">
+                      <button type="submit" class="btn-delete" style="padding: 6px 12px; font-size: 0.78rem;"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>
