@@ -184,19 +184,31 @@
             <p class="task-details"><%= task.description || 'No detailed instructions added.' %></p>
 
             <!-- Days Remaining Badge -->
-            <div style="margin: 10px 0;">
-              <% if (typeof task.daysRemaining !== 'undefined') { %>
-                <% if (task.daysRemaining < 0) { %>
+           <div style="margin: 10px 0;">
+              <% 
+                let daysLeft = typeof task.daysRemaining !== 'undefined' ? task.daysRemaining : null;
+                if (daysLeft === null && task.dueDate) {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const due = new Date(task.dueDate);
+                  due.setHours(0, 0, 0, 0);
+                  const diffTime = due - today;
+                  daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                }
+              %>
+
+              <% if (daysLeft !== null) { %>
+                <% if (daysLeft < 0) { %>
                   <span class="days-badge urgent">
-                    <i class="fa-solid fa-clock-rotate-left"></i> Overdue by <%= Math.abs(task.daysRemaining) %> Days
+                    <i class="fa-solid fa-clock-rotate-left"></i> Overdue by <%= Math.abs(daysLeft) %> Days
                   </span>
-                <% } else if (task.daysRemaining <= 3) { %>
+                <% } else if (daysLeft <= 3) { %>
                   <span class="days-badge urgent">
-                    <i class="fa-solid fa-fire"></i> Urgent: <%= task.daysRemaining %> Days Left
+                    <i class="fa-solid fa-fire"></i> Urgent: <%= daysLeft %> Days Left
                   </span>
                 <% } else { %>
                   <span class="days-badge normal">
-                    <i class="fa-solid fa-calendar-day"></i> <%= task.daysRemaining %> Days Remaining
+                    <i class="fa-solid fa-calendar-day"></i> <%= daysLeft %> Days Remaining
                   </span>
                 <% } %>
               <% } %>

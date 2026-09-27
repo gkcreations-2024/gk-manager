@@ -556,20 +556,23 @@ tr:last-child td {
   to { transform: rotate(360deg); }
 }
 
-/* Days Remaining & Urgent Badges */
+
+/* Days Remaining Badges */
 .days-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 20px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
+  margin: 10px 0;
 }
 
 .days-badge.normal {
   background: #e0f2fe;
   color: #0369a1;
+  border: 1px solid #bae6fd;
 }
 
 .days-badge.urgent {
@@ -581,5 +584,5 @@ tr:last-child td {
 
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.3); }
-  50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
 }
